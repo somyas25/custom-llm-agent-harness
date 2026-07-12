@@ -3,9 +3,10 @@ from app.config import Config
 
 """Establishes a connection to the SQLite database using the configured path."""
 def get_db_connection():
-    # Config.DATABASE_PATH points to /app/data/tasks.db inside the container
+    # Connecting to the on-disk database listed in the Config class
     conn = sqlite3.connect(Config.DATABASE_PATH)
-    # row factory allows us to access columns by name like a dictionary: row['title']
+
+    # Row factory allows us to access columns by name like a dictionary: row['title']
     conn.row_factory = sqlite3.Row
     return conn
 
