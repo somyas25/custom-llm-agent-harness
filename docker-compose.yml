@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # 📬 Mailpit service: Captures and stores mock emails
+  # Mailpit service: Captures and stores mock emails
   mailpit:
     image: axllent/mailpit:latest
     container_name: agent-mailpit
@@ -11,7 +11,7 @@ services:
     networks:
       - agent-network
 
-  # 🤖 Agent service: Your frameworkless ReAct loop
+  # Agent service: The frameworkless ReAct loop
   agent:
     build: .
     container_name: core-agent
@@ -27,7 +27,6 @@ services:
       - agent-network
     depends_on:
       - mailpit
-    # Keeps the container running so you can interact with it
     stdin_open: true
     tty: true
 
