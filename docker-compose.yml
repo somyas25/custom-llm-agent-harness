@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  # 📬 Mailpit service: Captures and stores mock emails
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: agent-mailpit
+    ports:
+      - "1025:1025" # SMTP server port (for sending emails)
+      - "8025:8025" # Web UI Dashboard & REST API port
+    networks:
+      - agent-network
+
+  # 🤖 Agent service: Your frameworkless ReAct loop
+  agent:
+    build: .
+    container_name: core-agent
+    volumes:
+      - ./app:/app/app
+      - ./data:/app/data
+    environment:
+      - PYTHONPATH=/app
+      - MAILPIT_API_URL=http://mailpit:8025/api/v1  # Points directly to the Mailpit container over internal network
+    env_file:
+      - .env
+    networks:
+      - agent-network
+    depends_on:
+      - mailpit
+    # Keeps the container running so you can interact with it
+    stdin_open: true
+    tty: true
+
+networks:
+  agent-network:
+    driver: bridge

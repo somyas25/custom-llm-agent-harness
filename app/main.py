@@ -5,11 +5,12 @@ from google.genai import types
 
 from app.config import Config
 from app.database import initialize_db
-from app.tools import fetch_unread_emails, create_task_from_email, view_current_task_list
+# 🛠️ FIX 1: Import search_and_fetch_emails instead of fetch_unread_emails
+from app.tools import search_and_fetch_emails, create_task_from_email, view_current_task_list
 
 # A local registry dictionary to map tool names to their actual Python function implementations
 TOOL_REGISTRY = {
-    "fetch_unread_emails": fetch_unread_emails,
+    "search_and_fetch_emails": search_and_fetch_emails,
     "create_task_from_email": create_task_from_email,
     "view_current_task_list": view_current_task_list
 }
@@ -25,7 +26,7 @@ class AgentHarness:
             "You are an autonomous executive assistant. Your goal is to triage the user's unread emails "
             "and extract actionable items into their prioritized task list database.\n\n"
             "CRITICAL PROTOCOL:\n"
-            "1. ALWAYS fetch unread emails first.\n"
+            "1. ALWAYS search and fetch unread emails first.\n"
             "2. Evaluate each email. If an email contains a task, deadline, or explicit request, "
             "use the 'create_task_from_email' tool to save it.\n"
             "3. If an email is just a newsletter or informational with no action required, ignore it.\n"
@@ -36,7 +37,7 @@ class AgentHarness:
         self.config = types.GenerateContentConfig(
             system_instruction=self.system_instruction,
             tools=list(TOOL_REGISTRY.values()),
-            temperature=0.0, # 0.0 forces deterministic reasoning (for inital debugging)
+            temperature=0.0, # 0.0 forces deterministic reasoning
         )
 
     def run_triage_loop(self, user_prompt: str):
@@ -48,7 +49,7 @@ class AgentHarness:
         ]
         
         # Read the max loop iterations from the config to prevent infinite API spend crashes
-        max_iterations = int(os.getenv("MAX_ITERATIONS", "5"))
+        max_iterations = int(os.getenv("MAX_ITERATIONS", "10")) # Bumped to 10 to give room for multi-turn steps
         
         for step in range(max_iterations):
             print(f"\n🔄 [Loop Step {step + 1}/{max_iterations}] Sending history to Gemini...")
